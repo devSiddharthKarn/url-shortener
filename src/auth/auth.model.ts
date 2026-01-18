@@ -3,6 +3,7 @@ import { mango } from "../db/db.connect.js";
 import {z} from "zod"
 
 interface IUser{
+    id:number,
     username:string,
     password:string,
 };

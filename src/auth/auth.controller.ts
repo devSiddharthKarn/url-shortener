@@ -1,9 +1,10 @@
 import { STATUS_CODE } from "../response/statusCode.response.js";
+import { URLs } from "../url/url.model.js";
 import { comparePassword, hashPassword } from "../utils/password.utils.js";
 import { Respond } from "../utils/respond.utils.js";
 import { generateAccessToken, generateRefreshToken } from "../utils/token.utils.js";
 import { getZodErrorMessage } from "../utils/zodError.utils.js";
-import { Users, Zod_User } from "./auth.model.js";
+import { Users,  Zod_User } from "./auth.model.js";
 
 import type { Request, Response } from "express";
 
@@ -112,4 +113,29 @@ const handleLogin=async(req:Request,res:Response)=>{
 
 }
 
-export { handleSignup ,handleLogin};
+const handleGetMyURLs = async(req:Request,res:Response)=>{
+    try {
+
+        const urls = await URLs.selectAll().where("createdBy","=",req.user.id).and("isDeleted","=",false).execute();
+
+        if(urls.length==0){
+            return res.status(STATUS_CODE.NOT_FOUND).json(
+                Respond(false,"user have no urls",urls,null)
+            )
+        }
+
+        return res.status(STATUS_CODE.OK).json(
+            Respond(true,"found urls",urls,null)
+        )
+
+
+    } catch (error) {
+        console.log("Internal server error at handle GetMyURLs,error:",error);
+        return res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json(
+            Respond(false,"Internal server error",null,null)
+        )
+    }
+}
+
+
+export { handleSignup ,handleLogin,handleGetMyURLs};

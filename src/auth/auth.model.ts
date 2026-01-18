@@ -14,6 +14,7 @@ const Zod_User=z.object({
     password:z.string().max(255)
 });
 
+
 let Users:MangoTable<IUser>;
 
 // Initialize table after DB connection

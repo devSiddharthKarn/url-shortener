@@ -98,33 +98,40 @@ const handleURLDelete = async(req:Request,res:Response)=>{
 
 
     try {
-        console.log("Delete request body:", req.body);
-        console.log("Verified data:", verified.data);
-        console.log("Looking for mappedURL:", verified.data.mappedURL);
+        // console.log("Delete request body:", req.body);
+        // console.log("Verified data:", verified.data);
+        // console.log("Looking for mappedURL:", verified.data.mappedURL);
         
-        const deleted = await URLs.selectAll().where("mappedURL","=",verified.data.mappedURL).execute();
+        const urls = await URLs.selectAll().where("mappedURL","=",verified.data.mappedURL).and("isDeleted","=",false).and("createdBy","=",req.user.id).execute();
 
-        console.log("Query result:", deleted);
-        console.log("Result length:", deleted.length);
+        // console.log("Query result:", deleted);
+        // console.log("Result length:", deleted.length);
 
-        if(deleted.length==0){
-            console.log("returnning from here");
+        if(urls.length==0){
+            // console.log("returnning from here");
             return res.status(STATUS_CODE.NOT_FOUND).json(
                 Respond(false,"no such url found",null,null)
             )
         }
 
-        console.log(deleted);
+        console.log(urls);
 
-        const data = deleted[0];
+        const data = urls[0];
 
-        if(data.isDeleted == 1 || data.isDeleted == true){
-            console.log("returning from hhh")
+        // if(data.isDeleted == true){
+        //     // console.log("returning from hhh")
+        //     return res.status(STATUS_CODE.NOT_FOUND).json(
+        //         Respond(false,"no such url found",null,null)
+        //     )
+        // }
+        
+
+        if(data.createdBy!=req.user.id || data.isDeleted){
             return res.status(STATUS_CODE.NOT_FOUND).json(
-                Respond(false,"no such url found",null,null)
+                Respond(false,"no such url found in your directory",null,null)
             )
         }
-        
+
         await URLs.update({
             isDeleted:true
         }).where("mappedURL","=",verified.data.mappedURL).and("createdBy","=",req.user.id).execute();
@@ -141,6 +148,8 @@ const handleURLDelete = async(req:Request,res:Response)=>{
         )
     }
 };
+
+
 
 export {handleURLCreate,handleURLGet,handleURLDelete};
 

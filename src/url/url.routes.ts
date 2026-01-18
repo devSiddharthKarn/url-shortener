@@ -8,10 +8,10 @@ const URLRoutes:Router=Router();
 
 URLRoutes.post("/createURL",authVerifyAccessToken,handleURLCreate)
 
-URLRoutes.delete("/deleteURL",handleURLDelete);
-
+URLRoutes.delete("/deleteURL",authVerifyAccessToken,handleURLDelete);
 
 
 URLRoutes.get("/url/:url",handleURLGet);
+
 
 export {URLRoutes};

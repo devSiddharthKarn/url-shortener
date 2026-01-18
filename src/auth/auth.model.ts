@@ -31,6 +31,6 @@ async function initUsersTable() {
 }
 
 
-export {Users, Zod_User, initUsersTable};
+export {Users, Zod_User, initUsersTable, type IUser};
 
 

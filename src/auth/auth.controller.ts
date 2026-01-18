@@ -1,6 +1,7 @@
 import { STATUS_CODE } from "../response/statusCode.response.js";
 import { comparePassword, hashPassword } from "../utils/password.utils.js";
 import { Respond } from "../utils/respond.utils.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/token.utils.js";
 import { getZodErrorMessage } from "../utils/zodError.utils.js";
 import { Users, Zod_User } from "./auth.model.js";
 
@@ -80,7 +81,23 @@ const handleLogin=async(req:Request,res:Response)=>{
                 Respond(false,"password did not matched",null,null)
             )
         }
+
+
         
+
+        const accessToken = generateAccessToken(foundUser);
+        const refreshToken = generateRefreshToken(foundUser);
+
+        res.cookie(process.env.ACCESS_TOKEN_COOKIE_NAME as string,accessToken,{
+            httpOnly:true,
+            secure:true
+        });
+
+
+        res.cookie(process.env.REFRESH_TOKEN_COOKIE_NAME as string,refreshToken,{
+            httpOnly:true,
+            secure:true
+        });
 
         return res.status(200).json(
             Respond(true,"password matched",foundUser,null)

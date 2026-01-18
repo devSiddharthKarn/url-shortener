@@ -5,23 +5,17 @@ export const add_email_field: IMangoMigrationType = {
     timestamp: 1768714591405,
     
     up: async (mango: Mango) => {
-        // TODO: Write your migration code here
-        // Example:
-        // await mango.createTable("users", {
-        //     id: mango.types().int().primaryKey().autoIncrement(),
-        //     username: mango.types().varchar(255).notNull().unique(),
-        //     password: mango.types().varchar(255).notNull()
-        // });
+        await mango.selectTable("users").addColumns({
+            email:mango.types().varchar(255).notNull()
+        }).execute();
         
         
         console.log("✓ Migration add_email_field completed");
     },
     
     down: async (mango: Mango) => {
-        // TODO: Write your rollback code here
-        // Example:
-        // await mango.dropTable("users");
-        
+        await mango.selectTable("users").removeColumns(["email"]).execute();
+
         console.log("✓ Rollback add_email_field completed");
     }
 };

@@ -2,14 +2,14 @@ import { STATUS_CODE } from "../response/statusCode.response.js";
 import { generateUniqueURL } from "../utils/generateUniqueURL.utils.js";
 import { Respond } from "../utils/respond.utils.js";
 import { getZodErrorMessage } from "../utils/zodError.utils.js";
-import { URLs, Zod_URL } from "./url.model.js";
+import { URLs, Zod_URL, Zod_URL_Delete } from "./url.model.js";
 import {Request,Response} from "express"
 
 
 const handleURLCreate = async(req:Request,res:Response)=>{
     const verified = Zod_URL.safeParse(req.body);
 
-    if(!verified.data){
+    if(!verified.success){
         const error = getZodErrorMessage(verified.error);
         return res.status(STATUS_CODE.BAD_REQUEST).json(
             Respond(false,"Invalid data for creating URL",null,error)
@@ -18,6 +18,9 @@ const handleURLCreate = async(req:Request,res:Response)=>{
 
 
     try {
+
+
+
         const uniqueURL = generateUniqueURL();
 
         const object ={
@@ -26,12 +29,18 @@ const handleURLCreate = async(req:Request,res:Response)=>{
             createdBy:req.user.id
         };
 
-        const url = await URLs.insertOne(object).execute();
+        await URLs.insertOne(object).execute();
 
-        console.log(url);
+
+
+
+        // console.log(url);
 
         return res.status(200).json(
-            Respond(true,"URL generated",uniqueURL,null)
+            Respond(true,"URL generated",{
+                url:uniqueURL,
+                
+            },null)
         )
 
     } catch (error) {
@@ -76,5 +85,62 @@ const handleURLGet = async(req:Request,res:Response)=>{
     }
 }
 
-export {handleURLCreate,handleURLGet};
+
+const handleURLDelete = async(req:Request,res:Response)=>{
+    const verified = Zod_URL_Delete.safeParse(req.body);
+
+    if(!verified.success){
+        const error = getZodErrorMessage(verified.error);
+        return res.status(STATUS_CODE.BAD_REQUEST).json(
+            Respond(false,"invalid data for url delete",null,error)
+        )
+    }
+
+
+    try {
+        console.log("Delete request body:", req.body);
+        console.log("Verified data:", verified.data);
+        console.log("Looking for mappedURL:", verified.data.mappedURL);
+        
+        const deleted = await URLs.selectAll().where("mappedURL","=",verified.data.mappedURL).execute();
+
+        console.log("Query result:", deleted);
+        console.log("Result length:", deleted.length);
+
+        if(deleted.length==0){
+            console.log("returnning from here");
+            return res.status(STATUS_CODE.NOT_FOUND).json(
+                Respond(false,"no such url found",null,null)
+            )
+        }
+
+        console.log(deleted);
+
+        const data = deleted[0];
+
+        if(data.isDeleted == 1 || data.isDeleted == true){
+            console.log("returning from hhh")
+            return res.status(STATUS_CODE.NOT_FOUND).json(
+                Respond(false,"no such url found",null,null)
+            )
+        }
+        
+        await URLs.update({
+            isDeleted:true
+        }).where("mappedURL","=",verified.data.mappedURL).and("createdBy","=",req.user.id).execute();
+
+
+        return res.status(STATUS_CODE.OK).json(
+            Respond(true,"url deleted successfully",null,null)
+        )
+
+    } catch (error) {
+        console.log("error at handle URL delete,error:",error);
+        return res.status(STATUS_CODE.INTERNAL_SERVER_ERROR).json(
+            Respond(false,"Internal server error",null,null)
+        )
+    }
+};
+
+export {handleURLCreate,handleURLGet,handleURLDelete};
 

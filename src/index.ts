@@ -13,6 +13,8 @@ await initUsersTable();
 await initURLTable();
 
 
+await migration.migrateUpToLatest();
+
 const app: Application = express();
 app.use(express.json());
 app.use(cookieParser());
@@ -28,6 +30,7 @@ import { initURLTable } from "./url/url.model.js";
 app.use("/api",authRoutes);
 
 import { URLRoutes } from "./url/url.routes.js";
+import { migration } from "./runMigration/basic_addition.js";
 app.use("/api",URLRoutes);
 
 app.listen(process.env.PORT, () => {
